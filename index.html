@@ -5,30 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบสต็อกน้ำแข็ง | ksd888</title>
     <style>
-        * {
-            box-sizing: border-box;
-            font-family: 'Sarabun', sans-serif;
-        }
-        body {
-            background: #f0f7ff;
-            color: #333;
-            line-height: 1.6;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        header {
-            background: linear-gradient(135deg, #1e90ff, #0047ab);
-            color: white;
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-            margin-bottom: 25px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        /* ... (โค้ด CSS เต็มอยู่ที่นี่) ... */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Kanit', sans-serif; }
+        body { background: #f0f7ff; color: #333; line-height: 1.6; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { background: linear-gradient(135deg, #1e90ff, #0047ab); color: white; 
+                padding: 25px; border-radius: 15px; text-align: center; margin-bottom: 25px; }
+        
+        /* เพิ่มสไตล์ใหม่ */
+        .card { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 25px; }
+        h2 { margin-bottom: 20px; color: #0047ab; }
+        .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin: 20px 0; }
+        .stat-box { background: #e6f2ff; border-radius: 10px; padding: 15px; text-align: center; }
+        .stat-value { font-size: 2.5rem; font-weight: bold; color: #0047ab; margin: 10px 0; }
+        
+        input, button { width: 100%; padding: 15px; margin: 10px 0; border-radius: 10px; font-size: 1.1rem; }
+        input { border: 1px solid #ddd; }
+        button { background: #28a745; color: white; border: none; cursor: pointer; }
+        #alert { background: #fff3cd; padding: 15px; border-radius: 10px; margin: 20px 0; text-align: center; }
     </style>
 </head>
 <body>
@@ -38,14 +31,86 @@
             <p>น้ำแข็งหลอดใหญ่ (กระสอบละ 55 บาท, 1 กระสอบ = 10 ถุง)</p>
         </header>
         
-        <!-- เนื้อหาเว็บแอป -->
-        <div class="dashboard">
-            <!-- ... (โค้ด HTML เต็ม) ... -->
+        <div class="card">
+            <h2>📦 สต็อกปัจจุบัน</h2>
+            <div class="stat-grid">
+                <div class="stat-box">
+                    <div>กระสอบทั้งหมด</div>
+                    <div class="stat-value" id="total-sacks">15</div>
+                    <div>กระสอบ</div>
+                </div>
+                <div class="stat-box">
+                    <div>ถุงคงเหลือ</div>
+                    <div class="stat-value" id="total-bags">150</div>
+                    <div>ถุง</div>
+                </div>
+            </div>
+            
+            <div id="alert">
+                ⚠️ สต็อกใกล้หมด! เหลือเพียง 5 กระสอบ
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>📥 นำเข้าสต็อก</h2>
+            <input type="date" id="purchase-date">
+            <input type="number" id="purchase-qty" placeholder="จำนวนกระสอบ" min="1">
+            <input type="text" id="supplier" placeholder="ชื่อผู้ขาย">
+            <button id="add-purchase">บันทึกการซื้อ</button>
+        </div>
+        
+        <div class="card">
+            <h2>📤 ขายสินค้า</h2>
+            <input type="date" id="sale-date">
+            <input type="number" id="sale-qty" placeholder="จำนวนถุง" min="1">
+            <input type="text" id="customer" placeholder="ชื่อลูกค้า">
+            <button id="add-sale" style="background:#ff6b00">บันทึกการขาย</button>
         </div>
     </div>
 
     <script>
-        // ... (โค้ด JavaScript เต็ม) ...
+        // ตั้งค่าข้อมูลเริ่มต้น
+        const BAGS_PER_SACK = 10;
+        let stock = { sacks: 15, bags: 150, soldBags: 35 };
+
+        // อัพเดตหน้าเว็บ
+        function updateUI() {
+            document.getElementById('total-sacks').textContent = stock.sacks;
+            document.getElementById('total-bags').textContent = stock.bags;
+            
+            // แสดงเตือนหากสต็อกต่ำ
+            const alertEl = document.getElementById('alert');
+            alertEl.style.display = stock.sacks < 5 ? 'block' : 'none';
+        }
+
+        // เพิ่มการซื้อ
+        document.getElementById('add-purchase').addEventListener('click', () => {
+            const qty = parseInt(document.getElementById('purchase-qty').value);
+            if (qty > 0) {
+                stock.sacks += qty;
+                stock.bags = stock.sacks * BAGS_PER_SACK;
+                alert(`✅ ซื้อ ${qty} กระสอบสำเร็จ!`);
+                updateUI();
+            }
+        });
+
+        // เพิ่มการขาย
+        document.getElementById('add-sale').addEventListener('click', () => {
+            const qty = parseInt(document.getElementById('sale-qty').value);
+            if (qty > 0 && qty <= stock.bags - stock.soldBags) {
+                stock.soldBags += qty;
+                alert(`✅ ขาย ${qty} ถุงสำเร็จ!`);
+                updateUI();
+            }
+        });
+
+        // ตั้งค่าวันที่เริ่มต้น
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('purchase-date').value = today;
+        document.getElementById('sale-date').value = today;
+
+        // เริ่มต้นระบบ
+        updateUI();
     </script>
 </body>
 </html>
